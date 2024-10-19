@@ -232,13 +232,50 @@ def turn( a, b, c ):
 
 def buildTristrips( triangles ):
 
-    count = 0
+    count = 0  # to track how many strips are generated
+
+    for triangle in triangles:
+        # If the triangle is already on a strip, skip it
+        if triangle.nextTri or triangle.prevTri:
+            continue
+
+        # Start a new strip
+        count += 1  # New strip started, increment count
+        current_tri = triangle
+        current_tri.isOnStrip = True
+
+        # Try to extend the strip as long as possible
+        while True:
+            next_tri = None
+
+            # Look for an adjacent triangle that is not on a strip yet
+            for adj in current_tri.adjTris:
+                if not adj.nextTri and not adj.prevTri:
+                    next_tri = adj
+                    break  # Found an adjacent unstriped triangle
+
+            if not next_tri:
+                # No more triangles to add to the current strip
+                break
+
+            # Link the current triangle and the next triangle
+            current_tri.nextTri = next_tri
+            next_tri.prevTri = current_tri
+            next_tri.isOnStrip = True
+
+            # Move to the next triangle in the strip
+            current_tri = next_tri
+
+    print(f'Generated {count} tristrips')
+
+    
+    #count = 0
 
     # [YOUR CODE HERE]
     #
     # Increment 'count' every time you *start* a new triStrip.
 
-    print( 'Generated %d tristrips' % count )
+    #print( 'Generated %d tristrips' % count )
 
 
 
