@@ -266,7 +266,7 @@ def buildTristrips( triangles ):
             # Move to the next triangle in the strip
             current_tri = next_tri
 
-    print(f'Generated {count} tristrips')
+    #print(f'Generated {count} tristrips')
 
     
     #count = 0
@@ -275,7 +275,7 @@ def buildTristrips( triangles ):
     #
     # Increment 'count' every time you *start* a new triStrip.
 
-    #print( 'Generated %d tristrips' % count )
+    print( 'Generated %d tristrips' % count )
 
 
 
