@@ -244,7 +244,7 @@ def buildTristrips( triangles ):
     count = 0
 
     # Create a list of triangles sorted by the number of adjacent triangles
-    sorted_triangles = sorted(triangles, key=lambda tri: len(tri.adjTris))
+    sorted_triangles = sorted(triangles, key=lambda tri: count_unstriped_adjacents(tri))
 
     for triangle in sorted_triangles:
         # If the triangle is already on a strip, skip it
@@ -262,11 +262,13 @@ def buildTristrips( triangles ):
 
             # Look for an adjacent triangle that is not on a strip yet and then sort adjacent triangles based on their number of unstriped adjacents
             available = [adj for adj in current_tri.adjTris if not adj.nextTri and not adj.prevTri]
-            sorted_adj = sorted(available, key=lambda adj: ( count_unstriped_adjacents(adj), lookahead(adj) ))
-            
-            if sorted_adj:
-                next_tri = sorted_adj[0]
+            if available:
+                # Precompute unstriped adjacents and lookahead once for each adjacent triangle
+                adj_data = [(adj, count_unstriped_adjacents(adj), lookahead(adj)) for adj in available]
 
+                # Find the adjacent triangle with minimum unstriped adjacents and lookahead
+                next_tri = min(adj_data, key=lambda x: (x[1], x[2]))[0]
+            
             if not next_tri:
                 break
 
