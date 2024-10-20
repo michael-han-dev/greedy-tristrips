@@ -229,18 +229,30 @@ def turn( a, b, c ):
 # This function does not return anything.  The strips are formed by
 # modifying the 'nextTri' and 'prevTri' pointers in each triangle.
 
-
+##################################################################################################################################
 def buildTristrips( triangles ):
+    
+    # Both functions used in while loop below
+    # Function to calculate the number of unstriped adjacents of a triangle
+    def count_unstriped_adjacents(triangle):
+        return len([a for a in triangle.adjTris if not a.nextTri and not a.prevTri])
+    
+    # Function to calculate the 1-step lookahead of a triangle
+    def lookahead(triangle):
+        return sum(len([aa for aa in a.adjTris if not aa.nextTri and not aa.prevTri]) for a in triangle.adjTris)
+    
+    count = 0
 
-    count = 0  # to track how many strips are generated
+    # Create a list of triangles sorted by the number of adjacent triangles
+    sorted_triangles = sorted(triangles, key=lambda tri: len(tri.adjTris))
 
-    for triangle in triangles:
+    for triangle in sorted_triangles:
         # If the triangle is already on a strip, skip it
         if triangle.nextTri or triangle.prevTri:
             continue
 
         # Start a new strip
-        count += 1  # New strip started, increment count
+        count += 1
         current_tri = triangle
         current_tri.isOnStrip = True
 
@@ -248,14 +260,14 @@ def buildTristrips( triangles ):
         while True:
             next_tri = None
 
-            # Look for an adjacent triangle that is not on a strip yet
-            for adj in current_tri.adjTris:
-                if not adj.nextTri and not adj.prevTri:
-                    next_tri = adj
-                    break  # Found an adjacent unstriped triangle
+            # Look for an adjacent triangle that is not on a strip yet and then sort adjacent triangles based on their number of unstriped adjacents
+            available = [adj for adj in current_tri.adjTris if not adj.nextTri and not adj.prevTri]
+            sorted_adj = sorted(available, key=lambda adj: ( count_unstriped_adjacents(adj), lookahead(adj) ))
+            
+            if sorted_adj:
+                next_tri = sorted_adj[0]
 
             if not next_tri:
-                # No more triangles to add to the current strip
                 break
 
             # Link the current triangle and the next triangle
@@ -266,18 +278,9 @@ def buildTristrips( triangles ):
             # Move to the next triangle in the strip
             current_tri = next_tri
 
-    #print(f'Generated {count} tristrips')
-
-    
-    #count = 0
-
-    # [YOUR CODE HERE]
-    #
-    # Increment 'count' every time you *start* a new triStrip.
-
     print( 'Generated %d tristrips' % count )
 
-
+##################################################################################################################################
 
 windowLeft   = None
 windowRight  = None
