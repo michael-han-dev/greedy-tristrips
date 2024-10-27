@@ -230,57 +230,54 @@ def turn( a, b, c ):
 # modifying the 'nextTri' and 'prevTri' pointers in each triangle.
 
 ##################################################################################################################################
-def buildTristrips( triangles ):
-    
-    # Both functions used in while loop below
-    # Function to calculate the number of unstriped adjacents of a triangle
-    def count_unstriped_adjacents(triangle):
-        return len([a for a in triangle.adjTris if not a.nextTri and not a.prevTri])
-    
-    # Function to calculate the 1-step lookahead of a triangle
-    def lookahead(triangle):
-        return sum(len([aa for aa in a.adjTris if not aa.nextTri and not aa.prevTri]) for a in triangle.adjTris)
-    
+def buildTristrips(triangles):
     count = 0
+    unstriped_tris = set(triangles)
 
-    # Create a list of triangles sorted by the number of adjacent triangles
-    sorted_triangles = sorted(triangles, key=lambda tri: count_unstriped_adjacents(tri))
+    while unstriped_tris:
+        # Find triangle with minimal unstriped adjacents to start the strip
+        min_unstriped_adjacents = None
+        start_tri = None
+        for tri in unstriped_tris:
+            unstriped_adjacents = [adj for adj in tri.adjTris if adj in unstriped_tris]
+            num_unstriped_adjacents = len(unstriped_adjacents)
+            if min_unstriped_adjacents is None or num_unstriped_adjacents < min_unstriped_adjacents:
+                min_unstriped_adjacents = num_unstriped_adjacents
+                start_tri = tri
 
-    for triangle in sorted_triangles:
-        # If the triangle is already on a strip, skip it
-        if triangle.nextTri or triangle.prevTri:
-            continue
-
-        # Start a new strip
+        # Start a new strip with the selected triangle
         count += 1
-        current_tri = triangle
+        current_tri = start_tri
         current_tri.isOnStrip = True
+        unstriped_tris.remove(current_tri)
 
-        # Try to extend the strip as long as possible
         while True:
-            next_tri = None
-
-            # Look for an adjacent triangle that is not on a strip yet and then sort adjacent triangles based on their number of unstriped adjacents
-            available = [adj for adj in current_tri.adjTris if not adj.nextTri and not adj.prevTri]
-            if available:
-                # Precompute unstriped adjacents and lookahead once for each adjacent triangle
-                adj_data = [(adj, count_unstriped_adjacents(adj), lookahead(adj)) for adj in available]
-
-                # Find the adjacent triangle with minimum unstriped adjacents and lookahead
-                next_tri = min(adj_data, key=lambda x: (x[1], x[2]))[0]
-            
-            if not next_tri:
+            # Find adjacent triangles that are not yet on a strip
+            unstriped_adjacents = [adj for adj in current_tri.adjTris if adj in unstriped_tris]
+            if not unstriped_adjacents:
                 break
 
-            # Link the current triangle and the next triangle
+            # Choose the adjacent triangle with minimal unstriped adjacents
+            min_adj_unstriped_adjacents = None
+            next_tri = None
+            for adj in unstriped_adjacents:
+                adj_unstriped_adjacents = [a for a in adj.adjTris if a in unstriped_tris]
+                num_adj_unstriped_adjacents = len(adj_unstriped_adjacents)
+                if min_adj_unstriped_adjacents is None or num_adj_unstriped_adjacents < min_adj_unstriped_adjacents:
+                    min_adj_unstriped_adjacents = num_adj_unstriped_adjacents
+                    next_tri = adj
+
+            # Link the current triangle with the selected next triangle
             current_tri.nextTri = next_tri
             next_tri.prevTri = current_tri
             next_tri.isOnStrip = True
+            unstriped_tris.remove(next_tri)
 
             # Move to the next triangle in the strip
             current_tri = next_tri
 
-    print( 'Generated %d tristrips' % count )
+    print('Generated %d tristrips' % count)
+
 
 ##################################################################################################################################
 
